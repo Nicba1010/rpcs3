@@ -102,6 +102,9 @@
     <Filter Include="Gui\utils">
       <UniqueIdentifier>{77ca7382-c296-43af-adb4-fb32f5ab4571}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Gui\updater">
+      <UniqueIdentifier>{5f9a580f-55f9-4ba4-ab55-a6172f3d7723}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="\rpcs3qt\*.cpp">
@@ -641,6 +644,21 @@
     <ClCompile Include="QTGeneratedFiles\qrc_windows.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="rpcs3qt\rpcs3_updater.cpp">
+      <Filter>Gui\updater</Filter>
+    </ClCompile>
+    <ClCompile Include="QTGeneratedFiles\Release - LLVM\moc_rpcs3_updater.cpp">
+      <Filter>Generated Files\Release - LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="QTGeneratedFiles\Debug\moc_rpcs3_updater.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="QTGeneratedFiles\Release\moc_rpcs3_updater.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="QTGeneratedFiles\Debug - LLVM\moc_rpcs3_updater.cpp">
+      <Filter>Generated Files\Debug - LLVM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="\rpcs3qt\*.h">
@@ -857,6 +875,12 @@
     </CustomBuild>
     <CustomBuild Include="windows.qrc">
       <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="rpcs3qt\rpcs3_updater.h">
+      <Filter>Gui\updater</Filter>
+    </CustomBuild>
+    <CustomBuild Include="rpcs3qt\rpcs3_updater.ui">
+      <Filter>Form Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

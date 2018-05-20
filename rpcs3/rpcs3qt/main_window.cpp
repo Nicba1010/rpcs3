@@ -30,6 +30,7 @@
 #include "main_window.h"
 #include "emu_settings.h"
 #include "about_dialog.h"
+#include "rpcs3_updater.h"
 #include "gamepads_settings_dialog.h"
 #include "progress_dialog.h"
 
@@ -1306,13 +1307,17 @@ void main_window::CreateConnects()
 		guiSettings->SetCategoryVisibility(id, checked);
 	});
 
-	connect(ui->aboutAct, &QAction::triggered, [this]
-	{
+	connect(ui->aboutAct, &QAction::triggered, [this] {
 		about_dialog dlg(this);
 		dlg.exec();
 	});
 
 	connect(ui->aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt);
+
+	connect(ui->actionCheck_for_Updates, &QAction::triggered, [this] {
+		rpcs3_updater dlg(this);
+		dlg.exec();
+	});
 
 	auto resizeIcons = [=](const int& index)
 	{
