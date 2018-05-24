@@ -69,7 +69,7 @@ before_build:
     irm $env:GLSLANG -outfile glslang.zip
     7z x llvmlibs.7z -aos -o"." | out-null
     7z e glslang.zip -aos -o".\lib\$env:CONFIGURATION-$env:PLATFORM" lib | out-null
-    if (!(test-path vulkan-sdk.exe)) { irm $env:VULKAN_SDK_URL -outfile vulkan-sdk.exe }
+    if (!(test-path vulkan-sdk.exe)) {  irm $env:VULKAN_SDK_URL -outfile vulkan-sdk.exe }
     .\vulkan-sdk.exe /S
 
 after_build:
