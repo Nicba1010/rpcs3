@@ -8,8 +8,7 @@
 #include <QNetworkRequest>
 
 rpcs3_updater::rpcs3_updater(QWidget* parent)
-	: QDialog(parent)
-	, ui(new Ui::rpcs3_updater)
+	: QDialog(parent), ui(new Ui::rpcs3_updater)
 {
 	//================================================================================
 	// General
@@ -20,7 +19,7 @@ rpcs3_updater::rpcs3_updater(QWidget* parent)
 	network_access_manager.reset(new QNetworkAccessManager());
 	network_access_manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
 
-	CleanUp(qApp->applicationDirPath());
+	clean_up(qApp->applicationDirPath());
 
 	//================================================================================
 	// Menu
@@ -63,7 +62,8 @@ void rpcs3_updater::on_update()
 	// Check for SSL and abort in case it is not supported
 	if (!QSslSocket::supportsSsl())
 	{
-		QMessageBox::critical(nullptr, tr("Warning!"), tr("Can not retrieve the Update! Please make sure your system supports SSL."));
+		QMessageBox::critical(nullptr, tr("Warning!"),
+		                      tr("Can not retrieve the Update! Please make sure your system supports SSL."));
 		return;
 	}
 
@@ -73,16 +73,16 @@ void rpcs3_updater::on_update()
 
 	// Send network request and wait for response
 	QNetworkRequest network_request = QNetworkRequest(QUrl(api));
-	network_reply                   = network_access_manager->get(network_request);
+	network_reply = network_access_manager->get(network_request);
 
 	// Initialise and show progress bar
-	ShowDownloadProgress(tr("Downloading build info."));
+	show_download_progress(tr("Downloading build info."));
 
 	// Handle response according to its contents
 	connect(network_reply, &QNetworkReply::finished, this, &rpcs3_updater::on_update_finished);
 }
 
-void rpcs3_updater::on_update_finished()
+void rpcs3_updater::on_update_finished() const
 {
 	if (!network_reply)
 	{
@@ -92,12 +92,15 @@ void rpcs3_updater::on_update_finished()
 	// Handle Errors
 	switch (network_reply->error())
 	{
-	case QNetworkReply::NoError: ReadJSON(network_reply->readAll());
+	case QNetworkReply::NoError:
+		read_json(network_reply->readAll());
 		ui->progressLabel->setText(tr("Build info retrieved"));
 		break;
-	case QNetworkReply::OperationCanceledError: ui->progressLabel->setText(tr("Build info canceled"));
+	case QNetworkReply::OperationCanceledError:
+		ui->progressLabel->setText(tr("Build info canceled"));
 		break;
-	default: ui->progressLabel->setText(tr("Build info error"));
+	default:
+		ui->progressLabel->setText(tr("Build info error"));
 		QMessageBox::critical(nullptr, tr("Error!"), network_reply->errorString());
 		break;
 	}
@@ -114,7 +117,7 @@ void rpcs3_updater::on_download()
 {
 	const QUrl latest(ui->download_data->text());
 
-	if (latest.isValid() == false)
+	if (!latest.isValid())
 	{
 		return;
 	}
@@ -123,11 +126,11 @@ void rpcs3_updater::on_download()
 	ui->updateButton->setEnabled(false);
 	ui->downloadButton->setEnabled(false);
 
-	QNetworkRequest network_request = QNetworkRequest(latest);
-	network_reply                   = network_access_manager->get(network_request);
+	const QNetworkRequest network_request = QNetworkRequest(latest);
+	network_reply = network_access_manager->get(network_request);
 
 	// Initialise and show progress bar
-	ShowDownloadProgress(tr("Downloading latest build."));
+	show_download_progress(tr("Downloading latest build."));
 
 	// Handle response according to its contents
 	connect(network_reply, &QNetworkReply::finished, this, &rpcs3_updater::on_download_finished);
@@ -143,15 +146,15 @@ void rpcs3_updater::on_download_finished()
 	// Handle Errors
 	switch (network_reply->error())
 	{
-	case QNetworkReply::NoError: Update(SaveFile(network_reply)); /*, [](bool success)
-		{
-		
-		});*/
+	case QNetworkReply::NoError:
+		update(save_file(network_reply));
 		ui->progressLabel->setText(tr("Download finished"));
 		break;
-	case QNetworkReply::OperationCanceledError: ui->progressLabel->setText(tr("Download canceled"));
+	case QNetworkReply::OperationCanceledError:
+		ui->progressLabel->setText(tr("Download canceled"));
 		break;
-	default: ui->progressLabel->setText(tr("Download error"));
+	default:
+		ui->progressLabel->setText(tr("Download error"));
 		QMessageBox::critical(nullptr, tr("Error!"), network_reply->errorString());
 		break;
 	}
@@ -164,11 +167,11 @@ void rpcs3_updater::on_download_finished()
 	network_reply->deleteLater();
 }
 
-bool rpcs3_updater::ReadJSON(QByteArray data)
+bool rpcs3_updater::read_json(const QByteArray& data) const
 {
 	// Read JSON data
 	const QJsonObject json_data = QJsonDocument::fromJson(data).object();
-	const int return_code       = json_data["return_code"].toInt();
+	const int return_code = json_data["return_code"].toInt();
 
 	if (return_code < -1/*0*/)
 	{
@@ -212,7 +215,7 @@ bool rpcs3_updater::ReadJSON(QByteArray data)
 	return true;
 }
 
-QString rpcs3_updater::SaveFile(QNetworkReply* network_reply)
+QString rpcs3_updater::save_file(QNetworkReply* network_reply)
 {
 	if (!network_reply)
 	{
@@ -226,7 +229,11 @@ QString rpcs3_updater::SaveFile(QNetworkReply* network_reply)
 
 	if (!file.open(QIODevice::WriteOnly))
 	{
-		QMessageBox::critical(nullptr, tr("Error!"), tr("Could not open %0 for writing: %1").arg(filename).arg(file.errorString()));
+		QMessageBox::critical(
+			nullptr,
+			tr("Error!"),
+			tr("Could not open %0 for writing: %1").arg(filename).arg(file.errorString())
+		);
 		return nullptr;
 	}
 
@@ -236,7 +243,7 @@ QString rpcs3_updater::SaveFile(QNetworkReply* network_reply)
 	return filename;
 }
 
-void rpcs3_updater::Update(const QString& path)
+void rpcs3_updater::update(const QString& path)
 {
 	if (path.isEmpty())
 	{
@@ -248,103 +255,97 @@ void rpcs3_updater::Update(const QString& path)
 	extract_process.reset(new QProcess());
 
 	connect(extract_process.get(), &QProcess::errorOccurred, this, &rpcs3_updater::on_error_occured);
-	connect(extract_process.get(), &QProcess::readyReadStandardOutput, [=]()
-	{
-		qDebug() << extract_process->readAllStandardOutput();
-	});
 
 	const QString file = QString(R"(./7za.exe x -aoa -o"%1" "%2")").arg(extraction_directory->path(), path);
 	qDebug() << "Extraction file: " << file;
 	qDebug() << "Extraction dir: " << extraction_directory->path();
-	connect(extract_process.get(), QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=](const int exit_code, const QProcess::ExitStatus exit_status)
-	{
-		qDebug() << "Extraction Finished";
+	connect(extract_process.get(), QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+	        [=](const int exit_code, const QProcess::ExitStatus exit_status)
+	        {
+		        LOG_SUCCESS(GENERAL, "Extraction finished");
 
-		switch (exit_status)
-		{
-		case QProcess::NormalExit:
-		{
-			qDebug() << "Extraction exit code: " << exit_code;
-			qDebug() << extract_process->readAll();
-			UpdateFiles();
-			break;
-		}
-		case QProcess::CrashExit:
-		default:
-			// TODO: Handle error
-			qDebug() << "Extraction Error: " << exit_code;
-			qDebug() << extract_process->readAll();
-			break;
-		}
+		        switch (exit_status)
+		        {
+		        case QProcess::NormalExit:
+			        LOG_SUCCESS(GENERAL, "Extraction successfull, exit code: %d", exit_code);
+			        qDebug() << extract_process->readAll();
+			        if (update_files())
+			        {
+				        LOG_SUCCESS(GENERAL, "Successfully updated all files");
+			        }
+			        else
+			        {
+						LOG_ERROR(GENERAL, "Unable to update all files");
+						// TODO: Revert
+						QMessageBox::critical(nullptr, tr("Error!"), tr("All files were not updater, changes have been reverted!"));
+			        }
+			        break;
+		        case QProcess::CrashExit:
+		        default:
+			        LOG_ERROR(GENERAL, "Extraction Error: %d", exit_code);
+			        QMessageBox::critical(nullptr, tr("Error!"), tr("Error occurred during file extraction!"));
+			        qDebug() << extract_process->readAll();
+		        }
 
-		extract_process->close();
+		        extract_process->close();
 
-		if (download_directory->isValid() && !download_directory->remove())
-		{
-			qDebug() << "Could not remove download_directory!";
-		}
+		        if (download_directory->isValid() && !download_directory->remove())
+		        {
+			        LOG_ERROR(GENERAL, "Could not remove download_directory!");
+		        }
 
-		if (extraction_directory->isValid() && !extraction_directory->remove())
-		{
-			qDebug() << "Could not remove extraction_directory!";
-		}
-		extract_process->deleteLater();
-	});
+		        if (extraction_directory->isValid() && !extraction_directory->remove())
+		        {
+			        LOG_ERROR(GENERAL, "Could not remove extraction_directory!");
+		        }
+		        extract_process->deleteLater();
+	        });
 	extract_process->start(file);
-	// #elif __linux__
+	LOG_SUCCESS(GENERAL, "Extracting file: %s", QFileInfo(path).fileName());
+#elif __linux__
 	QProcessEnvironment env = QProcessEnvironment();
-	if (env.contains("APPIMAGE"))
+	if (!env.contains("APPIMAGE")) return;
+	const QString app_image_path = env.value("APPIMAGE", nullptr);
+	if (app_image_path != nullptr)
 	{
-		const QString app_image_path = env.value("APPIMAGE", nullptr);
-		if (app_image_path == nullptr)
-		{
-			const QFileInfo info = QFileInfo(app_image_path);
-			if (info.exists())
-			{
-				QFile current_app_image_file(app_image_path);
-				QFile updated_app_image_file(path);
-				if (current_app_image_file.remove())
-				{
-					if (updated_app_image_file.rename(app_image_path))
-					{
-						QFileDevice::Permissions permissions = updated_app_image_file.permissions();
-						permissions.setFlag(QFileDevice::Permission::ExeOwner);
-						permissions.setFlag(QFileDevice::Permission::ExeGroup);
-						permissions.setFlag(QFileDevice::Permission::ExeUser);
-						permissions.setFlag(QFileDevice::Permission::ExeOther);
-						if (updated_app_image_file.setPermissions(permissions))
-						{
-							// TODO: success
-						}
-						else
-						{
-							QMessageBox::critical(nullptr, tr("Error!"), "Unable to change permissions, please change permissions to a+x manually!");
-						}
-					}
-					else
-					{
-						QMessageBox::critical(nullptr, tr("Error!"), "Unable to move updated AppImage file!!");
-					}
-				}
-				else
-				{
-					QMessageBox::critical(nullptr, tr("Error!"), "Unable to delete original AppImage file!");
-				}
-			}
-			else
-			{
-				QMessageBox::critical(nullptr, tr("Error!"), "AppImage path points to non existent file!");
-			}
-		}
-		else
-		{
-			QMessageBox::critical(nullptr, tr("Error!"), "Unable to get AppImage path!");
-		}
+		QMessageBox::critical(nullptr, tr("Error!"), tr("Unable to get AppImage path!"));
+		return;
+	}
+	const QFileInfo info = QFileInfo(app_image_path);
+	if (!info.exists())
+	{
+		QMessageBox::critical(nullptr, tr("Error!"), tr("AppImage path points to non existent file!"));
+		return;
+	}
+	QFile current_app_image_file(app_image_path);
+	QFile updated_app_image_file(path);
+	if (!current_app_image_file.remove())
+	{
+		QMessageBox::critical(nullptr, tr("Error!"), tr("Unable to delete original AppImage file!"));
+		return;
+	}
+	if (!updated_app_image_file.rename(app_image_path))
+	{
+		QMessageBox::critical(nullptr, tr("Error!"), tr("Unable to move updated AppImage file!!"));
+		return;
+	}
+	QFileDevice::Permissions permissions = updated_app_image_file.permissions();
+	permissions.setFlag(QFileDevice::Permission::ExeOwner);
+	permissions.setFlag(QFileDevice::Permission::ExeGroup);
+	permissions.setFlag(QFileDevice::Permission::ExeUser);
+	permissions.setFlag(QFileDevice::Permission::ExeOther);
+	if (updated_app_image_file.setPermissions(permissions))
+	{
+		// TODO: success
+	}
+	else
+	{
+		QMessageBox::critical(nullptr, tr("Error!"), tr("Unable to change permissions, please change permissions to a+x manually!"));
 	}
 #endif
 }
 
-void rpcs3_updater::UpdateFiles()
+bool rpcs3_updater::update_files() const
 {
 	QDirIterator it(extraction_directory->path(), QDirIterator::Subdirectories);
 	while (it.hasNext())
@@ -362,10 +363,17 @@ void rpcs3_updater::UpdateFiles()
 			QFile new_file(info.absoluteFilePath());
 			QFile old_file(old_path);
 
-			if (GetFileHash(&new_file) != GetFileHash(&old_file))
+			if (get_file_hash(&new_file) != get_file_hash(&old_file))
 			{
-				old_file.rename(old_file.fileName() + "." + deprecated_extension);
-				new_file.rename(old_path);
+				if (old_file.rename(old_file.fileName() + "." + deprecated_extension) && new_file.rename(old_path))
+				{
+					LOG_SUCCESS(GENERAL, "Updated file: %s", old_file.fileName());
+				}
+				else
+				{
+					LOG_ERROR(GENERAL, "Could not update file: %s", old_file.fileName());
+					return false;
+				}
 			}
 		}
 		else if (info.isDir())
@@ -373,16 +381,19 @@ void rpcs3_updater::UpdateFiles()
 			QDir dir(old_path);
 			if (!dir.exists() && !dir.mkpath(old_path))
 			{
-				qDebug() << "Update error: " << old_path;
-				// TODO: Handle error
-				// Cleanup(extraction_directory->path());
-				// return;
+				LOG_ERROR(GENERAL, "Cannot create folder: %s", dir.dirName());
+				return false;
+			}
+			else
+			{
+				LOG_SUCCESS(GENERAL, "Successfully created folder: %s", dir.dirName());
 			}
 		}
 	}
+	return true;
 }
 
-QByteArray rpcs3_updater::GetFileHash(QFile* file, QCryptographicHash::Algorithm algorithm)
+QByteArray rpcs3_updater::get_file_hash(QFile* file, const QCryptographicHash::Algorithm algorithm)
 {
 	if (!file || !file->exists())
 	{
@@ -396,7 +407,7 @@ QByteArray rpcs3_updater::GetFileHash(QFile* file, QCryptographicHash::Algorithm
 	return hash;
 }
 
-void rpcs3_updater::CleanUp(const QDir& directory)
+void rpcs3_updater::clean_up(const QDir& directory)
 {
 	const QFileInfoList files = directory.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs | QDir::Files);
 
@@ -409,7 +420,7 @@ void rpcs3_updater::CleanUp(const QDir& directory)
 
 		if (file_info.isDir())
 		{
-			CleanUp(QDir(file_info.absoluteFilePath()));
+			clean_up(QDir(file_info.absoluteFilePath()));
 			continue;
 		}
 
@@ -419,7 +430,7 @@ void rpcs3_updater::CleanUp(const QDir& directory)
 
 			if (deprecated_file.remove())
 			{
-				qDebug() << "Successfully deleted deprecated file: " << deprecated_file;
+				LOG_SUCCESS(GENERAL, "Successfully deleted deprecated file: %s", deprecated_file.fileName());
 			}
 			else
 			{
@@ -432,7 +443,7 @@ void rpcs3_updater::CleanUp(const QDir& directory)
 	}
 }
 
-void rpcs3_updater::ShowDownloadProgress(const QString& message)
+void rpcs3_updater::show_download_progress(const QString& message)
 {
 	ui->progressBar->setValue(0);
 	ui->progressBar->setEnabled(true);
@@ -458,7 +469,7 @@ void rpcs3_updater::ShowDownloadProgress(const QString& message)
 	});
 }
 
-void rpcs3_updater::on_error_occured(const QProcess::ProcessError error)
+void rpcs3_updater::on_error_occured(const QProcess::ProcessError error) const
 {
 	QString error_message;
 	switch (error)

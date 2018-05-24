@@ -13,6 +13,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
+#include <Utilities/Log.h>
 #include <memory>
 #include <qapplication.h>
 
@@ -21,7 +22,7 @@ static const QStringList forbidden_directories =
 	"dev_hdd0", "dev_hdd1", "data", "dev_flash", "dev_usb000", "shaderlog"
 };
 static const QString deprecated_extension = "rpcs3-deprecated";
-static const QString api                  = "https://update.rpcs3.net/?c=XXXXXXXX";
+static const QString api = "https://update.rpcs3.net/?c=XXXXXXXX";
 
 namespace Ui
 {
@@ -36,13 +37,13 @@ public:
 	explicit rpcs3_updater(QWidget* parent = Q_NULLPTR);
 
 private:
-	bool ReadJSON(QByteArray data);
-	QString SaveFile(QNetworkReply* network_reply);
-	void ShowDownloadProgress(const QString& message);
-	void Update(const QString& path);
-	static QByteArray GetFileHash(QFile* file, QCryptographicHash::Algorithm algorithm = QCryptographicHash::Algorithm::Md5);
-	static void CleanUp(const QDir& directory = QDir(qApp->applicationDirPath()));
-	void UpdateFiles();
+	bool read_json(const QByteArray& data) const;
+	QString save_file(QNetworkReply* network_reply);
+	void show_download_progress(const QString& message);
+	void update(const QString& path);
+	static QByteArray get_file_hash(QFile* file, QCryptographicHash::Algorithm algorithm = QCryptographicHash::Algorithm::Md5);
+	static void clean_up(const QDir& directory = QDir(qApp->applicationDirPath()));
+	bool update_files() const;
 
 	Ui::rpcs3_updater* ui;
 
@@ -57,6 +58,6 @@ private Q_SLOTS:
 	void on_download();
 	void on_download_finished();
 	void on_update();
-	void on_update_finished();
-	void on_error_occured(QProcess::ProcessError error);
+	void on_update_finished() const;
+	void on_error_occured(QProcess::ProcessError error) const;
 };
